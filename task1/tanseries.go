@@ -40,8 +40,7 @@ func tanSeries(x, eps float64, maxTerms int) (float64, error) {
 		return 0, ErrNotConverged
 	}
 
-	// Если cos слишком мал — рядом асимптота (pi/2 + k*pi), tan становится огромным/неустойчивым.
-	// Порог выбран прагматически.
+	// Проверка асимптоты: если cos(x) ~ 0, то tan(x) неопределён.
 	const cosMin = 1e-12
 	if math.Abs(c) < cosMin {
 		return 0, ErrUndefined
@@ -50,7 +49,7 @@ func tanSeries(x, eps float64, maxTerms int) (float64, error) {
 	return s / c, nil
 }
 
-// sinSeries: sin(x) = Σ (-1)^k x^(2k+1)/(2k+1)!
+// sinSeries: ряд маклорена ниггер sin(x) = Σ (-1)^k x^(2k+1)/(2k+1)!
 // term_{k+1} = term_k * ( -x^2 / ((2k+2)(2k+3)) )
 func sinSeries(x, eps float64, maxTerms int) (sum float64, converged bool) {
 	term := x
@@ -60,6 +59,7 @@ func sinSeries(x, eps float64, maxTerms int) (sum float64, converged bool) {
 	}
 
 	x2 := x * x
+	// считаем каждый следующий член через предыдущий, чтобы не факаться с факториалами.
 	for k := 0; k < maxTerms-1; k++ {
 		den1 := float64(2*k + 2)
 		den2 := float64(2*k + 3)
@@ -72,7 +72,7 @@ func sinSeries(x, eps float64, maxTerms int) (sum float64, converged bool) {
 	return sum, false
 }
 
-// cosSeries: cos(x) = Σ (-1)^k x^(2k)/(2k)!
+// cosSeries: ряд маклорена чуваааак cos(x) = Σ (-1)^k x^(2k)/(2k)!
 // term_{k+1} = term_k * ( -x^2 / ((2k+1)(2k+2)) )
 func cosSeries(x, eps float64, maxTerms int) (sum float64, converged bool) {
 	term := 1.0
@@ -82,6 +82,7 @@ func cosSeries(x, eps float64, maxTerms int) (sum float64, converged bool) {
 	}
 
 	x2 := x * x
+	// бро я ненавижу факториалы и тд
 	for k := 0; k < maxTerms-1; k++ {
 		den1 := float64(2*k + 1)
 		den2 := float64(2*k + 2)
